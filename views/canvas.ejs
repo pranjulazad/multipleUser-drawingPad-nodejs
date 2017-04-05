@@ -1,1 +1,102 @@
+<!DOCTYPE HTML>
+<html>
 
+<head>
+    <style type="text/css">
+        body {
+            margin: 10px;
+            background: #CCC;
+        }
+        
+        #mycanvas {
+            background: #FFF;
+            border: #000 1px solid;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="http://172.31.147.7:3000/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+       $(document).ready(function(){
+
+            var socket = io.connect('http://172.31.147.7:3000');            
+            var canvas = document.getElementById('mycanvas');
+            var cordShow = document.getElementById('cord');
+            var md = false;
+
+            if (canvas.getContext) {
+                var ctx = canvas.getContext("2d");
+                var cW = ctx.canvas.width, cH = ctx.canvas.height;
+                var radius = 10;
+
+                ctx.lineWidth = radius * 2;
+
+                var drawNew = function (data) {
+                    ctx.canvas.style.cursor = "pointer";
+
+                    if (md == true) {
+                        ctx.lineTo(data.X, data.Y);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.arc(data.X, data.Y, radius, 0, Math.PI * 2, false);
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.moveTo(data.X, data.Y);
+                    }
+                }
+
+                socket.on('drag',function(data){
+                    md = true;
+                    ctx.canvas.style.cursor = "pointer";
+                    drawNew(data);
+                });
+
+                socket.on('drop',function(data){
+                    md = false;
+                    ctx.canvas.style.cursor = "default";
+                    ctx.beginPath();
+                });
+
+                socket.on('move',function(data){
+                    drawNew(data);
+                });
+
+                //drag
+                ctx.canvas.addEventListener('mousedown', function(){
+                    
+                    var mousex = event.clientX - ctx.canvas.offsetLeft;
+                    var mousey = event.clientY - ctx.canvas.offsetTop;
+                    socket.emit('get down',mousex,mousey);
+                });
+                //drop
+                ctx.canvas.addEventListener('mouseup', function(){
+                    
+                    var mousex = event.clientX - ctx.canvas.offsetLeft;
+                    var mousey = event.clientY - ctx.canvas.offsetTop;
+                    socket.emit('get up',mousex,mousey);
+                });
+                //drawnew
+                ctx.canvas.addEventListener('mousemove', function(){
+                    var mousex = event.clientX - ctx.canvas.offsetLeft;
+                    var mousey = event.clientY - ctx.canvas.offsetTop;
+                    cord.innerHTML = mousex + " | " + mousey;
+                    socket.emit('get move',mousex,mousey);
+                });
+
+            }
+            else {
+                alert('You need Safari or Firefox 1.5+ to see this demo.');
+            }
+       
+       })
+            
+    </script>
+</head>
+
+<body>
+    <canvas id="mycanvas" width="700" height="350"></canvas>
+    <div id="btn_cont">
+        <h2 id='cord'>0 | 0</h2>
+    </div>
+</body>
+
+</html>
