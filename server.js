@@ -23,16 +23,16 @@ io.sockets.on('connection', function (socket) {
         console.log('Disconnected : %s clients connected', connected.length);
     });
 
-    socket.on('get down', function (x,y) {
-       io.sockets.emit('drag',{X:x,Y:y});
+    socket.on('get down', function (x,y,c,s) {
+       io.sockets.emit('drag',{X:x,Y:y,C:c,S:s});
     });
 
-    socket.on('get up', function (x,y) {
-        io.sockets.emit('drop',{X:x,Y:y});
+    socket.on('get up', function () {
+        io.sockets.emit('drop');
     });
 
-    socket.on('get move', function (x,y) {
-        io.sockets.emit('move',{X:x,Y:y});
+    socket.on('get move', function (x,y,c,s) {
+        io.sockets.emit('move',{X:x,Y:y,C:c,S:s});
     });
 
 });
